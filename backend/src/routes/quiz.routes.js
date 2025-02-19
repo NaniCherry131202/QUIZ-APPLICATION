@@ -1,6 +1,7 @@
 const express = require('express');
 const { createQuiz, getQuizzes, submitQuiz,getLeaderboard} = require('../controllers/quiz.controller.js');
-const authMiddleware = require("../middleware/authMiddleware");
+const { authMiddleware } = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 // Create a new quiz (Teacher Only)
