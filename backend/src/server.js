@@ -15,6 +15,6 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.log(err));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/quizzes', quizRoutes);
+app.use('/api/quiz', quizRoutes);
 
 app.listen(2424, () => console.log('Server running on port 2424'));

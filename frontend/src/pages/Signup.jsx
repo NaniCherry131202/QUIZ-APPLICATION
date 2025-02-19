@@ -8,15 +8,30 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student"); // Default role is "student"
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(""); // Clear previous errors
+
     try {
-      await axios.post("http://localhost:2424/api/auth/register", { name, email, password, role });
-      navigate("/");
+      const res = await axios.post("http://localhost:2424/api/auth/register", { name, email, password, role });
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.role);
+
+        // Redirect based on role
+        navigate(res.data.role === "teacher" ? "/teacher" : "/student");
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed");
+      setError(err.response?.data?.message || "Signup failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,7 +73,13 @@ const Signup = () => {
             <option value="student">Student</option>
             <option value="teacher">Teacher</option>
           </select>
-          <button className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Sign Up</button>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing up..." : "Sign Up"}
+          </button>
         </form>
         <p className="text-center mt-4">
           Already have an account? <a href="/" className="text-blue-500">Login</a>

@@ -21,8 +21,10 @@ exports.registerUser = [
         }
 
         try {
-            const { name, email, password, role = "student" } = req.body;
-
+            const { name, email, password, role} = req.body;
+            if (!role || role !== "admin") {
+                role = "student"; // Default role is student
+            }
             const existingUser = await User.findOne({ email });
             if (existingUser) {
                 return res.status(400).json({ success: false, message: "Email already registered" });

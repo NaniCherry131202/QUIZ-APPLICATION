@@ -10,48 +10,58 @@ const TeacherDashboard = () => {
     const token = localStorage.getItem("token");
 
     const addQuestion = () => {
-        if (newQuestion && correctAnswer && options.includes(correctAnswer)) {
-            const newQuestionObj = { question: newQuestion, options, correctAnswer }; // Create question object
-            setQuestions(prevQuestions => [...prevQuestions, newQuestionObj]); // Update state with new object
-            setNewQuestion("");
-            setOptions(["", "", "", ""]);
-            setCorrectAnswer("");
-        } else {
-            alert("Correct answer must be one of the options!");
+        if (!newQuestion.trim()) {
+            alert("Question cannot be empty!");
+            return;
         }
+        if (options.some(opt => !opt.trim())) {
+            alert("All options must be filled!");
+            return;
+        }
+        if (!options.includes(correctAnswer)) {
+            alert("Correct answer must be one of the options!");
+            return;
+        }
+
+        const newQuestionObj = { question: newQuestion, options, correctAnswer };
+        setQuestions(prevQuestions => [...prevQuestions, newQuestionObj]);
+        setNewQuestion("");
+        setOptions(["", "", "", ""]);
+        setCorrectAnswer("");
     };
 
     const submitQuiz = async () => {
+        if (!quizTitle.trim()) {
+            alert("Quiz title cannot be empty!");
+            return;
+        }
         if (questions.length === 0) {
             alert("Please add at least one question to the quiz.");
             return;
         }
+        if (!token) {
+            alert("Authentication failed! Please log in again.");
+            return;
+        }
 
         try {
-            const questionsToSend = [...questions]; // Create a copy for sending
-            console.log("Questions being sent:", questionsToSend); // Log the copy
+            const questionsToSend = [...questions];
+
+            console.log("Questions being sent:", questionsToSend);
 
             await axios.post(
                 "http://localhost:2424/api/quizzes/create",
-                { title: quizTitle, questions: questionsToSend }, // Send the copy
+                { title: quizTitle, questions: questionsToSend },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
             alert("Quiz Created Successfully!");
             setQuizTitle("");
             setQuestions([]);
-            console.log("Quiz created:", quizTitle, questions); // Log after successful submission
+            console.log("Quiz created:", quizTitle, questions);
         } catch (err) {
-            console.error(err);
-            if (err.response) {
-                console.error("Response data:", err.response.data);
-                alert(err.response.data.error || "Failed to create quiz.");
-            } else if (err.request) {
-                console.error("Request error:", err.request);
-                alert("Failed to create quiz. No response received.");
-            } else {
-                console.error("Axios setup error:", err.message);
-                alert("Failed to create quiz. Request setup error.");
-            }
+            console.error("Error creating quiz:", err);
+            alert(err.response?.data?.error || "Failed to create quiz.");
         }
     };
 
