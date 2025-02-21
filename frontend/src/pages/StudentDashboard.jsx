@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import axios from "axios";
 
 const StudentDashboard = () => {
@@ -6,7 +7,7 @@ const StudentDashboard = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(null); // Initial value set to null
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -20,12 +21,12 @@ const StudentDashboard = () => {
         console.error("Error fetching quizzes:", err);
       }
     };
-
     fetchQuizzes();
   }, []);
+
   useEffect(() => {
     if (selectedQuiz) {
-      setTimeLeft(60);
+      setTimeLeft(selectedQuiz.duration); // Set timeLeft to the quiz duration from API (in seconds)
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -39,93 +40,106 @@ const StudentDashboard = () => {
       return () => clearInterval(timer);
     }
   }, [selectedQuiz]);
+
   const submitAnswers = async () => {
     const formattedAnswers = Object.keys(answers).map((key) => ({
-        questionId: selectedQuiz.questions[key]._id,
-        selectedOption: answers[key]
+      questionId: selectedQuiz.questions[key]._id,
+      selectedOption: answers[key],
     }));
 
     try {
-        const res = await axios.post(
-            "http://localhost:2424/api/quizzes/submit",
-            { quizId: selectedQuiz._id, answers: formattedAnswers },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert(res.data.message);
-        setScore(res.data.score);
+      const res = await axios.post(
+        "http://localhost:2424/api/quizzes/submit",
+        { quizId: selectedQuiz._id, answers: formattedAnswers },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setScore(res.data.score);
     } catch (err) {
-        console.error("Error submitting quiz:", err.response?.data || err);
-        alert(err.response?.data?.error || "Error submitting quiz.");
+      console.error("Error submitting quiz:", err.response?.data || err);
+      alert(err.response?.data?.error || "Error submitting quiz.");
     }
-};
-
-  
+  };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
-      <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
+    <motion.div 
+      className="max-w-4xl mx-auto p-8 bg-black text-green-400 shadow-xl rounded-lg mt-10 border border-green-500"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <h2 className="text-4xl font-bold mb-6 text-center text-green-300 uppercase tracking-wider">QuizMaster Challenge</h2>
       {selectedQuiz ? (
         score !== null ? (
-          <div>
-            <h3 className="text-xl font-bold">{selectedQuiz.title}</h3>
-            <p className="text-lg font-semibold mt-4">
-              Your Score: {score} / {selectedQuiz.questions.length}
+          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+            <h3 className="text-2xl font-bold text-center">{selectedQuiz.title}</h3>
+            <p className="text-lg font-semibold mt-4 text-center text-green-500">
+              🎯 Score: {score} / {selectedQuiz.questions.length}
             </p>
-            <button
-              className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+            <motion.button
+              className="bg-green-600 text-black px-6 py-3 rounded mt-6 block mx-auto hover:bg-green-800 transition-all font-semibold"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => {
                 setSelectedQuiz(null);
                 setScore(null);
                 setAnswers({});
+                setTimeLeft(null); // Reset timeLeft when exiting quiz
               }}
             >
-              Take Another Quiz
-            </button>
-          </div>
+              Try Another Challenge
+            </motion.button>
+          </motion.div>
         ) : (
-          <div>
-            <h3 className="text-xl font-bold">{selectedQuiz.title}</h3>
-            <p className="text-red-500 font-semibold">⏳ Time Left: {timeLeft}s</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h3 className="text-2xl font-bold text-center">{selectedQuiz.title}</h3>
+            <p className="text-red-500 font-semibold text-center text-lg">
+              ⏳ Time Left: {Math.floor(timeLeft / 60)}m {timeLeft % 60}s
+            </p>
             {selectedQuiz.questions.map((q, index) => (
-              <div key={index} className="mb-4">
-                <p className="font-semibold">{q.question}</p>
+              <motion.div key={index} className="mb-6 bg-gray-900 p-4 rounded-lg" initial={{ x: -50 }} animate={{ x: 0 }}>
+                <p className="font-semibold text-green-300">{q.question}</p>
                 {q.options.map((option, i) => (
-                  <label key={i} className="block">
+                  <label key={i} className="block cursor-pointer hover:text-green-500 flex items-center">
                     <input
                       type="radio"
                       name={`q${index}`}
                       value={option}
-                      onChange={(e) =>
-                        setAnswers({ ...answers, [index]: e.target.value })
-                      }
+                      onChange={(e) => setAnswers({ ...answers, [index]: e.target.value })}
+                      className="mr-2 accent-green-500"
                     />
                     {option}
                   </label>
                 ))}
-              </div>
+              </motion.div>
             ))}
-            <button
-              className="bg-green-500 text-white px-4 py-2 rounded mt-4"
+            <motion.button
+              className="bg-green-500 text-black px-6 py-3 rounded mt-6 block mx-auto hover:bg-green-700 transition-all font-semibold"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={submitAnswers}
             >
-              Submit Answers
-            </button>
-          </div>
+              Submit Challenge
+            </motion.button>
+          </motion.div>
         )
       ) : quizzes.length > 0 ? (
-        quizzes.map((quiz) => (
-          <div
-            key={quiz._id}
-            className="p-4 border rounded mb-2 cursor-pointer hover:bg-gray-100"
-            onClick={() => setSelectedQuiz(quiz)}
-          >
-            {quiz.title}
-          </div>
-        ))
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          {quizzes.map((quiz) => (
+            <motion.div
+              key={quiz._id}
+              className="p-6 border border-green-500 rounded-lg mb-4 cursor-pointer bg-gray-900 hover:bg-gray-800 shadow-lg transition-all text-green-300"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedQuiz(quiz)}
+            >
+              {quiz.title} - Duration: {Math.floor(quiz.duration / 60)}m {quiz.duration % 60}s
+            </motion.div>
+          ))}
+        </motion.div>
       ) : (
-        <p>No quizzes available.</p>
+        <p className="text-center text-gray-500">No challenges available.</p>
       )}
-    </div>
+    </motion.div>
   );
 };
 

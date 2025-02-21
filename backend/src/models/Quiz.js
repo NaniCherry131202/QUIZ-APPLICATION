@@ -7,6 +7,7 @@ const quizSchema = new mongoose.Schema({
         trim: true,      // Trim whitespace
         maxlength: 200   // Add a reasonable maximum length
     },
+    duration: { type: Number, required: true },
     createdBy: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 

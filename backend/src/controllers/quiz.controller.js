@@ -34,7 +34,7 @@ function validateQuizInput(title, questions) {
 
 exports.createQuiz = async (req, res) => {
     try {
-        const { title, questions } = req.body;
+        const { title, duration, questions } = req.body;
         const teacherId = req.user.id;
 
         if (!teacherId) {
@@ -46,7 +46,7 @@ exports.createQuiz = async (req, res) => {
             return res.status(400).json({ error: validationError });
         }
 
-        const quiz = await Quiz.create({ title, questions, createdBy: teacherId });
+        const quiz = await Quiz.create({ title, questions,duration, createdBy: teacherId });
         res.status(201).json({ message: "Quiz created successfully", quiz });
     } catch (error) {
         console.error("Error creating quiz:", error);
