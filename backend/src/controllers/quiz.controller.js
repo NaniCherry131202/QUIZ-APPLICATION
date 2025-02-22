@@ -100,6 +100,7 @@ exports.submitQuiz = async (req, res) => {
 exports.getLeaderboard = async (req, res) => {
     try {
         const leaderboard = await User.find({ lastScore: { $exists: true } }).sort({ lastScore: -1 }).limit(10);
+        console.log("Leaderboard data:", leaderboard);
         res.json(leaderboard);
     } catch (error) {
         console.error("Error getting leaderboard:", error);

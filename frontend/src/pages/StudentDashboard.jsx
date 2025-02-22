@@ -7,7 +7,7 @@ const StudentDashboard = () => {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(null); // Initial value set to null
+  const [timeLeft, setTimeLeft] = useState(null);
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     if (selectedQuiz) {
-      setTimeLeft(selectedQuiz.duration); // Set timeLeft to the quiz duration from API (in seconds)
+      setTimeLeft(selectedQuiz.duration);
       const timer = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -62,15 +62,18 @@ const StudentDashboard = () => {
 
   return (
     <motion.div 
-      className="max-w-4xl mx-auto p-8 bg-black text-green-400 shadow-xl rounded-lg mt-10 border border-green-500"
+      className="min-h-screen w-full flex flex-col items-center justify-center bg-black text-green-400 p-6"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-4xl font-bold mb-6 text-center text-green-300 uppercase tracking-wider">QuizMaster Challenge</h2>
+      <h2 className="text-4xl font-bold mb-6 text-green-300 uppercase tracking-wider text-center">
+        QuizMaster Challenge
+      </h2>
+      
       {selectedQuiz ? (
         score !== null ? (
-          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
+          <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="w-full max-w-2xl bg-gray-900 p-8 rounded-lg shadow-lg">
             <h3 className="text-2xl font-bold text-center">{selectedQuiz.title}</h3>
             <p className="text-lg font-semibold mt-4 text-center text-green-500">
               🎯 Score: {score} / {selectedQuiz.questions.length}
@@ -83,20 +86,20 @@ const StudentDashboard = () => {
                 setSelectedQuiz(null);
                 setScore(null);
                 setAnswers({});
-                setTimeLeft(null); // Reset timeLeft when exiting quiz
+                setTimeLeft(null);
               }}
             >
               Try Another Challenge
             </motion.button>
           </motion.div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-2xl bg-gray-900 p-8 rounded-lg shadow-lg">
             <h3 className="text-2xl font-bold text-center">{selectedQuiz.title}</h3>
             <p className="text-red-500 font-semibold text-center text-lg">
               ⏳ Time Left: {Math.floor(timeLeft / 60)}m {timeLeft % 60}s
             </p>
             {selectedQuiz.questions.map((q, index) => (
-              <motion.div key={index} className="mb-6 bg-gray-900 p-4 rounded-lg" initial={{ x: -50 }} animate={{ x: 0 }}>
+              <motion.div key={index} className="mb-6 p-4 bg-gray-800 rounded-lg" initial={{ x: -50 }} animate={{ x: 0 }}>
                 <p className="font-semibold text-green-300">{q.question}</p>
                 {q.options.map((option, i) => (
                   <label key={i} className="block cursor-pointer hover:text-green-500 flex items-center">
@@ -123,11 +126,11 @@ const StudentDashboard = () => {
           </motion.div>
         )
       ) : quizzes.length > 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-2xl">
           {quizzes.map((quiz) => (
             <motion.div
               key={quiz._id}
-              className="p-6 border border-green-500 rounded-lg mb-4 cursor-pointer bg-gray-900 hover:bg-gray-800 shadow-lg transition-all text-green-300"
+              className="p-6 border border-green-500 rounded-lg mb-4 cursor-pointer bg-gray-900 hover:bg-gray-800 shadow-lg transition-all text-green-300 text-center"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedQuiz(quiz)}

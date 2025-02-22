@@ -27,7 +27,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['teacher', 'student'],
         required: true
+    },
+    lastScore:{
+        type:Number,
     }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
