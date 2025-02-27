@@ -1,19 +1,19 @@
-const express = require('express');
-const { createQuiz, getQuizzes, submitQuiz,getLeaderboard} = require('../controllers/quiz.controller.js');
-const { authMiddleware } = require("../middleware/authMiddleware");
+import express from "express";
+import { createQuiz, getQuizzes, submitQuiz, getLeaderboard } from "../controllers/quiz.controller.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Create a new quiz (Teacher Only)
-router.post('/create', authMiddleware, createQuiz); // Correct middleware placement
+router.post("/create", authMiddleware, createQuiz);
 
-// Fetch all quizzes (Student) - No authentication needed if all students can view
-router.get('/', authMiddleware, getQuizzes);
-  // Consider if authentication is needed here
+// Fetch all quizzes (Student) - Authentication optional depending on requirements
+router.get("/", authMiddleware, getQuizzes); // Consider removing authMiddleware if public access is intended
 
 // Submit a quiz (Student)
-router.post('/submit', authMiddleware, submitQuiz); // Add auth middleware
-router.get("/leaderboard", getLeaderboard);
-console.log("authMiddleware:", authMiddleware);
+router.post("/submit", authMiddleware, submitQuiz);
 
-module.exports = router;
+// Get leaderboard (Public or authenticated, depending on intent)
+router.get("/leaderboard", getLeaderboard);
+
+export default router;

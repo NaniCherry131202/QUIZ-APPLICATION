@@ -1,21 +1,41 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const authRoutes = require('./routes/auth.routes.js');
-const quizRoutes = require('./routes/quiz.routes.js');
-const adminRoutes = require("./routes/admin.routes");
+import authRoutes from "./routes/auth.routes.js";
+import quizRoutes from "./routes/quiz.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+
+// Load environment variables
+dotenv.config();
+
+// Initialize Express app
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.log(err));
+// MongoDB connection
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI); // Removed deprecated options
+    console.log("MongoDB Connected");
+  } catch (err) {
+    console.error("MongoDB connection error:", err.stack);
+    process.exit(1); // Exit process on failure
+  }
+};
 
-app.use('/api/auth', authRoutes);
-app.use('/api/quizzes', quizRoutes);
+// Connect to MongoDB
+connectDB();
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/quizzes", quizRoutes);
 app.use("/api/admin", adminRoutes);
 
-app.listen(2424, () => console.log('Server running on port 2424'));
+// Start server
+const PORT = process.env.PORT || 1310;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

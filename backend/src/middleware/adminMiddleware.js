@@ -1,35 +1,34 @@
-// middleware/adminMiddleware.js
-const jwt = require("jsonwebtoken");
-const User = require("../models/User"); // Assuming you have a User model
+import jwt from "jsonwebtoken";
+import User from "../models/User.js"; // Add .js for ES Modules
 
-const adminMiddleware = async (req, res, next) => {
+// Admin middleware
+export const adminMiddleware = async (req, res, next) => {
   try {
-    // Get the token from the Authorization header
+    // Extract token from Authorization header
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your JWT secret from .env
-    req.user = decoded; // Store decoded user data in req.user
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret"); // Fallback secret
+    req.user = decoded; // Attach decoded user data to req.user
 
-    // Find the user in the database
-    const user = await User.findById(decoded.id);
+    // Find user and check role
+    const user = await User.findById(decoded.id).lean(); // .lean() for performance
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    // Check if the user has the admin role
     if (user.role !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    next(); // Proceed to the route handler
+    next(); // Proceed to the next handler
   } catch (error) {
-    console.error("Admin middleware error:", error);
+    console.error("Admin middleware error:", error.stack);
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
-module.exports = adminMiddleware;

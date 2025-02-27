@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import TeacherDashboard from "./pages/TeacherDashboard";
@@ -12,13 +12,8 @@ import AdminDashboard from "./components/AdminDashboard";
 function App() {
   const [userRole, setUserRole] = useState(localStorage.getItem("role") || null);
 
-  // Sync userRole with localStorage only once on mount
-  useEffect(() => {
-    console.log("Initial role from localStorage:", userRole);
-  }, []); // Empty dependency array since it’s only for mount
-
+   // Empty dependency array since it’s only for mount
   const handleLogin = (role) => {
-    console.log("Logged in with role:", role);
     setUserRole(role);
     localStorage.setItem("role", role);
   };
