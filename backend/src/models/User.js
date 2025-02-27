@@ -25,7 +25,8 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['teacher', 'student'],
+        enum: ["user", "teacher", "student", "admin"], // Add "admin"
+        default: "user",
         required: true
     },
     lastScore:{

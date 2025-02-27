@@ -8,7 +8,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await axios.get("http://localhost:2424/api/leaderboard");
+        const res = await axios.get("http://localhost:2424/api/quizzes/leaderboard");
         console.log("API response:", res.data);
         setLeaders(res.data);
         setError(null);

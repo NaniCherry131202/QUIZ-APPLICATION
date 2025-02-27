@@ -1,4 +1,3 @@
-// admin.route.js (updated with new middleware)
 const express = require("express");
 const { body, param, validationResult } = require("express-validator");
 const rateLimit = require("express-rate-limit");
@@ -11,16 +10,18 @@ const {
   updateUser,
 } = require("../controllers/admin.controller.js");
 const { authMiddleware } = require("../middleware/authMiddleware");
-const adminMiddleware = require("../middleware/adminMiddleware"); // New import
+const adminMiddleware = require("../middleware/adminMiddleware");
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 100, // 100 requests per window
 });
 
 const router = express.Router();
 
-// Base path: /api/admin
-router.use(authMiddleware, adminMiddleware); // Use the new adminMiddleware
+// Apply middleware to all routes
+router.use(limiter);
+router.use(authMiddleware, adminMiddleware);
 
 // User Management Routes
 router.get("/users", getAllUsers);
@@ -42,7 +43,7 @@ router.put(
   },
   updateUser
 );
-router.use(limiter);
+
 // Role Management Routes
 router.put("/promote/:id", promoteToAdmin);
 router.put("/demote/:id", demoteFromAdmin);

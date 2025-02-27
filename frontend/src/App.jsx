@@ -8,53 +8,57 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Leaderboard from "./pages/Leaderboard";
 import AdminDashboard from "./components/AdminDashboard";
-function App() {
-  const [userRole, setUserRole] = useState(null);
 
+function App() {
+  const [userRole, setUserRole] = useState(localStorage.getItem("role") || null);
+
+  // Sync userRole with localStorage only once on mount
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    console.log("Initial role from localStorage:", role);
-    setUserRole(role);
-  }, []);
+    console.log("Initial role from localStorage:", userRole);
+  }, []); // Empty dependency array since it’s only for mount
 
   const handleLogin = (role) => {
-    console.log("Handling login with role:", role);
+    console.log("Logged in with role:", role);
     setUserRole(role);
     localStorage.setItem("role", role);
-    
   };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    localStorage.removeItem("role");
+  };
+
+  // Define protected routes with their allowed roles
+  const protectedRoutes = [
+    { path: "/teacher", element: <TeacherDashboard />, allowedRoles: ["teacher"] },
+    { path: "/student", element: <StudentDashboard />, allowedRoles: ["student"] },
+    { path: "/admin", element: <AdminDashboard />, allowedRoles: ["admin"] },
+    { path: "/leaderboard", element: <Leaderboard />, allowedRoles: ["student", "teacher", "admin"] }, // Accessible to all logged-in users
+  ];
 
   return (
     <Router>
-      <Navbar />
+      <Navbar onLogout={handleLogout} userRole={userRole} />
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<Signup />} />
-        <Route 
-          path="/teacher" 
-          element={
-            <ProtectedRoute allowedRoles={["teacher"]}>
-              <TeacherDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/student" 
-          element={
-            <ProtectedRoute allowedRoles={["student"]}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } 
-        />
+
+        {/* Protected Routes */}
+        {protectedRoutes.map(({ path, element, allowedRoles }) => (
+          <Route
+            key={path}
+            path={path}
+            element={
+              <ProtectedRoute allowedRoles={allowedRoles} userRole={userRole}>
+                {element}
+              </ProtectedRoute>
+            }
+          />
+        ))}
+
+        {/* Catch-all route: Redirect to login if not authenticated */}
+        <Route path="*" element={userRole ? <Navigate to={`/${userRole}`} /> : <Navigate to="/" />} />
       </Routes>
     </Router>
   );
