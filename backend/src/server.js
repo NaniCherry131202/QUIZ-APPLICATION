@@ -2,8 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url"; // Add this for ESM
 import bcrypt from "bcryptjs";
-import nodemailer from "nodemailer"; // Add this
+import nodemailer from "nodemailer";
 
 import authRoutes from "./routes/auth.routes.js";
 import quizRoutes from "./routes/quiz.routes.js";
@@ -12,10 +14,12 @@ import adminRoutes from "./routes/admin.routes.js";
 // Load environment variables
 dotenv.config();
 
+// Derive __dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize Express app
 const app = express();
-
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -64,6 +68,14 @@ app.post("/api/subscribe", async (req, res) => {
     console.error("Subscription error:", err.stack);
     res.status(500).json({ success: false, message: "Server error. Please try again." });
   }
+});
+
+// Serve static files from frontend/dist
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch-all route for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
 // Routes
