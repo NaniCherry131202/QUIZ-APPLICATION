@@ -61,45 +61,58 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Promote to admin
+/// Promote to any role
 export const promoteToAdmin = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.role === "admin") {
-      return res.status(400).json({ message: "User is already an admin" });
+    const { role } = req.body;
+    const validRoles = ["student", "teacher", "admin"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
     }
 
-    user.role = "admin";
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.role === role) {
+      return res.status(400).json({ message: `User is already a ${role}` });
+    }
+
+    user.role = role;
     await user.save();
-    res.json({ message: "User promoted to admin" });
+    res.json({ message: `User promoted to ${role}` });
   } catch (error) {
     handleError(res, error, "Error promoting user");
   }
 };
 
-// Demote from admin
+// Demote to teacher or student
 export const demoteFromAdmin = async (req, res) => {
   try {
+    const { role } = req.body;
+    const validRoles = ["teacher", "student"];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role for demotion" });
+    }
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.role !== "admin") {
-      return res.status(400).json({ message: "User is not an admin" });
+    if (user.role === role) {
+      return res.status(400).json({ message: `User is already a ${role}` });
     }
 
-    const adminCount = await User.countDocuments({ role: "admin" });
-    if (adminCount <= 1) {
-      return res.status(403).json({ message: "Cannot demote the last admin" });
+    if (user.role === "admin") {
+      const adminCount = await User.countDocuments({ role: "admin" });
+      if (adminCount <= 1) {
+        return res.status(403).json({ message: "Cannot demote the last admin" });
+      }
     }
 
-    user.role = "user";
+    user.role = role;
     await user.save();
-    res.json({ message: "User demoted to regular user" });
+    res.json({ message: `User demoted to ${role}` });
   } catch (error) {
     handleError(res, error, "Error demoting user");
   }
 };
-
 // Update user
 export const updateUser = async (req, res) => {
   try {

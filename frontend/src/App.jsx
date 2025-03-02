@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useState} from "react";
 import Login from "./pages/Login";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import Signup from "./pages/Signup";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -8,6 +9,7 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Leaderboard from "./pages/Leaderboard";
 import AdminDashboard from "./components/AdminDashboard";
+import Footer from "./components/Footer";
 
 function App() {
   const [userRole, setUserRole] = useState(localStorage.getItem("role") || null);
@@ -55,7 +57,9 @@ function App() {
         {/* Catch-all route: Redirect to login if not authenticated */}
         <Route path="*" element={userRole ? <Navigate to={`/${userRole}`} /> : <Navigate to="/" />} />
       </Routes>
+      <Footer/>
     </Router>
+    
   );
 }
 

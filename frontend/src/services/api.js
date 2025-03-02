@@ -29,30 +29,32 @@ api.interceptors.response.use(
   }
 );
 
-export const getUsers = async (token) => {
+export const getUsers = async (token, includePasswords = false) => {
   if (!token) throw new Error("No authentication token provided");
-  return api.get("/users"); // Calls /api/admin/users
+  return api.get("/users", { params: { includePasswords } }); // Add query param
 };
 
 export const deleteUser = async (userId, token) => {
   if (!token) throw new Error("No authentication token provided");
   if (!userId) throw new Error("User ID is required");
-  return api.delete(`/users/${userId}`); // Updated to /api/admin/users/:id
+  return api.delete(`/users/${userId}`); // Calls /api/admin/users/:id
 };
 
-export const promoteToAdmin = async (userId, token) => {
+export const promoteToAdmin = async (userId, token, role) => {
   if (!token) throw new Error("No authentication token provided");
   if (!userId) throw new Error("User ID is required");
-  return api.put(`/promote/${userId}`, {}); // Correct for /api/admin/promote/:id
+  if (!role) throw new Error("Role is required for promotion");
+  return api.put(`/promote/${userId}`, { role }); // Calls /api/admin/promote/:id with role in body
 };
 
-export const demoteFromAdmin = async (userId, token) => {
+export const demoteFromAdmin = async (userId, token, role) => {
   if (!token) throw new Error("No authentication token provided");
   if (!userId) throw new Error("User ID is required");
-  return api.put(`/demote/${userId}`, {}); // Correct for /api/admin/demote/:id
+  if (!role) throw new Error("Role is required for demotion");
+  return api.put(`/demote/${userId}`, { role }); // Calls /api/admin/demote/:id with role in body
 };
 
-// Additional useful API calls you might consider
+// Additional useful API calls
 export const getUserById = async (userId, token) => {
   if (!token) throw new Error("No authentication token provided");
   if (!userId) throw new Error("User ID is required");
