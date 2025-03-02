@@ -143,7 +143,7 @@ export const submitQuiz = async (req, res) => {
     const { quizId, answers } = req.body;
     const studentId = req.user?.id;
 
-    console.log("Received quizId:", quizId); // Debug log
+    
 
     if (!studentId || !isValidObjectId(studentId)) {
       return res.status(401).json({ error: "Valid user authentication required" });

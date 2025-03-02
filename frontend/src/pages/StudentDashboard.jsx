@@ -114,7 +114,7 @@ const StudentDashboard = () => {
   }, [selectedQuiz, showPasswordInput]);
 
   const submitAnswers = async () => {
-    console.log("Submitting answers for quiz:", selectedQuiz); // Debug log
+    
     const formattedAnswers = Object.keys(answers).map((key) => ({
       questionId: selectedQuiz.questions[key]._id?.toString() || null, // Ensure questionId is a string
       selectedOption: answers[key],
