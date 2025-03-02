@@ -71,11 +71,11 @@ app.post("/api/subscribe", async (req, res) => {
 });
 
 // Serve static files from frontend/dist
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Catch-all route for client-side routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'));
 });
 
 // Routes
