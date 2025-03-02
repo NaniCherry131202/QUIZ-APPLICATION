@@ -1,9 +1,12 @@
 import { isValidObjectId } from "mongoose";
-import Quiz from "../models/Quiz.js"; // Add .js for ES Modules
+import Quiz from "../models/Quiz.js";
 import User from "../models/User.js";
 import Submission from "../models/Submission.js";
+import bcrypt from "bcryptjs"; // Add bcryptjs for password hashing
+import dotenv from "dotenv";
 
-// Helper function for input validation
+dotenv.config();
+
 const validateQuizInput = (title, questions) => {
   if (typeof title !== "string" || title.trim() === "") {
     return "Title is required and must be a non-empty string";
@@ -32,7 +35,6 @@ const validateQuizInput = (title, questions) => {
   return null;
 };
 
-// Helper function for consistent error handling
 const handleError = (res, error, message) => {
   console.error(`${message}:`, error.stack);
   return res.status(500).json({ error: message });
@@ -41,11 +43,15 @@ const handleError = (res, error, message) => {
 // Create a quiz
 export const createQuiz = async (req, res) => {
   try {
-    const { title, duration, questions } = req.body;
+    const { title, duration, questions, password } = req.body;
     const teacherId = req.user?.id;
 
     if (!teacherId || !isValidObjectId(teacherId)) {
       return res.status(401).json({ error: "Valid teacher authentication required" });
+    }
+
+    if (!password || typeof password !== "string" || password.trim() === "") {
+      return res.status(400).json({ error: "Quiz password is required and must be a non-empty string" });
     }
 
     const validationError = validateQuizInput(title, questions);
@@ -53,28 +59,91 @@ export const createQuiz = async (req, res) => {
       return res.status(400).json({ error: validationError });
     }
 
-    const quiz = await Quiz.create({ title, duration, questions, createdBy: teacherId });
+    const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const quiz = await Quiz.create({
+      title,
+      duration,
+      questions,
+      password: hashedPassword,
+      createdBy: teacherId,
+    });
     res.status(201).json({ message: "Quiz created successfully", quiz });
   } catch (error) {
     handleError(res, error, "Error creating quiz");
   }
 };
 
-// Get all quizzes
+// Get a quiz (for students or teachers, requires password)
+export const getQuiz = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const { password } = req.body; // Student submits password
+
+    if (!quizId || !isValidObjectId(quizId)) {
+      return res.status(400).json({ error: "Invalid or missing quiz ID" });
+    }
+    if (!password || typeof password !== "string") {
+      return res.status(400).json({ error: "Password is required" });
+    }
+
+    const quiz = await Quiz.findById(quizId).lean();
+    if (!quiz) {
+      return res.status(404).json({ error: "Quiz not found" });
+    }
+
+    const isMatch = await bcrypt.compare(password, quiz.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Incorrect quiz password" });
+    }
+
+    // Return the quiz with its _id at the root level
+    res.json({
+      success: true,
+      quiz: {
+        _id: quiz._id, // Add quiz _id at the root
+        title: quiz.title,
+        duration: quiz.duration,
+        questions: quiz.questions.map((q) => ({
+          ...q,
+          _id: q._id?.toString() || null, // Ensure question _id is a string
+        })),
+      },
+    });
+  } catch (error) {
+    handleError(res, error, "Error fetching quiz");
+  }
+};
+
+// Get all quizzes (unchanged)
 export const getQuizzes = async (req, res) => {
   try {
-    const quizzes = await Quiz.find().lean(); // .lean() for performance
-    res.json(quizzes);
+    const quizzes = await Quiz.find()
+      .select("_id title duration questions._id questions.question questions.options questions.correctAnswer")
+      .lean();
+    // Format quizzes to include _id at the root
+    const formattedQuizzes = quizzes.map((quiz) => ({
+      _id: quiz._id,
+      title: quiz.title,
+      duration: quiz.duration,
+      questions: quiz.questions.map((q) => ({
+        ...q,
+        _id: q._id?.toString() || null,
+      })),
+    }));
+    res.json(formattedQuizzes);
   } catch (error) {
     handleError(res, error, "Error retrieving quizzes");
   }
 };
 
-// Submit a quiz
 export const submitQuiz = async (req, res) => {
   try {
     const { quizId, answers } = req.body;
     const studentId = req.user?.id;
+
+    console.log("Received quizId:", quizId); // Debug log
 
     if (!studentId || !isValidObjectId(studentId)) {
       return res.status(401).json({ error: "Valid user authentication required" });
@@ -120,7 +189,7 @@ export const submitQuiz = async (req, res) => {
   }
 };
 
-// Get leaderboard
+// Get leaderboard (unchanged)
 export const getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await User.find({ lastScore: { $exists: true } })

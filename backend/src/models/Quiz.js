@@ -4,9 +4,9 @@ const quizSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true, // Title is required
-      trim: true, // Trim whitespace
-      maxlength: 200, // Reasonable maximum length
+      required: true,
+      trim: true,
+      maxlength: 200,
     },
     duration: {
       type: Number,
@@ -15,27 +15,27 @@ const quizSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // Quiz must have a creator
+      required: true,
     },
     questions: [
       {
         question: {
           type: String,
-          required: true, // Question text is required
-          trim: true, // Trim whitespace
-          maxlength: 500, // Reasonable maximum length
+          required: true,
+          trim: true,
+          maxlength: 500,
         },
         options: {
           type: [String],
-          required: true, // Options are required
+          required: true,
           validate: [
-            (val) => val.length >= 2, // Minimum of 2 options
+            (val) => val.length >= 2,
             "A question must have at least two options",
           ],
         },
         correctAnswer: {
           type: String,
-          required: true, // Correct answer is required
+          required: true,
           validate: {
             validator(v) {
               return this.options.includes(v);
@@ -45,6 +45,10 @@ const quizSchema = new mongoose.Schema(
         },
       },
     ],
+    password: {
+      type: String, // Hashed password
+      required: true,
+    },
   },
   { timestamps: true }
 );

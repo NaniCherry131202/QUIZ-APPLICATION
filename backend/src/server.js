@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer"; // Add this
 
 import authRoutes from "./routes/auth.routes.js";

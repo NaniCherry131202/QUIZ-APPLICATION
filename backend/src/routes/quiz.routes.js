@@ -1,5 +1,5 @@
 import express from "express";
-import { createQuiz, getQuizzes, submitQuiz, getLeaderboard } from "../controllers/quiz.controller.js";
+import { createQuiz, getQuizzes, submitQuiz, getQuiz, getLeaderboard } from "../controllers/quiz.controller.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -8,7 +8,10 @@ const router = express.Router();
 router.post("/create", authMiddleware, createQuiz);
 
 // Fetch all quizzes (Student) - Authentication optional depending on requirements
-router.get("/", authMiddleware, getQuizzes); // Consider removing authMiddleware if public access is intended
+router.get("/", authMiddleware, getQuizzes);
+
+// Get a specific quiz (requires password)
+router.post("/get/:quizId", authMiddleware, getQuiz); // Added authMiddleware for security
 
 // Submit a quiz (Student)
 router.post("/submit", authMiddleware, submitQuiz);
